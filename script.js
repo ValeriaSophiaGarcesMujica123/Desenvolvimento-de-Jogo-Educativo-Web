@@ -1,91 +1,149 @@
-const desafios = [
+//Deck
+
+let deck = [
   {
-    pergunta: "Quanto é 2 + 2?",
-    opcoes: ["3", "4", "5"],
-    correta: 1
+    id: 1,
+    name: "Sapo",
+    color: "#84CFFA",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069170.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
   },
   {
-    pergunta: "Qual é a capital do Brasil?",
-    opcoes: ["São Paulo", "Rio de Janeiro", "Brasília"],
-    correta: 2
+    id: 2,
+    name: "Vaca",
+    color: "#FA8484",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069162.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
   },
   {
-    pergunta: "Quantos lados tem um triângulo?",
-    opcoes: ["2", "3", "4"],
-    correta: 1
-  }
+    id: 3,
+    name: "Canguru",
+    color: "#E984FA",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069163.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
+  },
+  {
+    id: 4,
+    name: "Leão",
+    color: "#84FAAC",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069169.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
+  },
+  {
+    id: 5,
+    name: "Pássaro",
+    color: "#8684FA",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069186.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
+  },
+  {
+    id: 6,
+    name: "Elefante",
+    color: "#F7FA84",
+    imagem: "https://image.flaticon.com/icons/svg/3069/3069224.svg",
+    descricao: ["descricao 1", "descricao 2", "descricao 3"],
+    virado: true,
+  },
 ];
 
-let indiceAtual = 0;
-let respondeu = false;
+const cards = document.querySelectorAll('.card');
 
-const tituloEl = document.getElementById("titulo");
-const perguntaEl = document.getElementById("pergunta");
-const opcoesEl = document.getElementById("opcoes");
-const feedbackEl = document.getElementById("feedback");
-const proximoBtn = document.getElementById("proximo");
+let hasFlippedCard = false;
+let lockBoard = false;
+let firstCard, secondCard;
+let movements = 0;
+let winContador = 0;
 
-function carregarDesafio() {
-  respondeu = false;
-  feedbackEl.textContent = "";
-  proximoBtn.disabled = true;
+function flipCard() {
+  //this.classList.toggle('flip');
+  if (lockBoard) return;
+  if (this === firstCard) return;
 
-  const desafio = desafios[indiceAtual];
-  tituloEl.textContent = `Desafio ${indiceAtual + 1} de ${desafios.length}`;
-  perguntaEl.textContent = desafio.pergunta;
-  opcoesEl.innerHTML = "";
+  this.classList.add('flip');
 
-  desafio.opcoes.forEach((texto, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = texto;
-    btn.classList.add("opcao");
-    btn.addEventListener("click", () => verificarResposta(i, btn));
-    opcoesEl.appendChild(btn);
-  });
+   if (!hasFlippedCard) {
+     hasFlippedCard = true;
+     firstCard = this;
+     return;
+    }
+
+    console.log(winContador)
+     
+    secondCard = this;
+ 
+    checkForMatch();
 }
+ 
+  //Conferindo se é igual
 
-function verificarResposta(escolha, botaoClicado) {
-  if (respondeu) return; // evita clicar duas vezes
-  respondeu = true;
+  function checkForMatch() {
+    if(firstCard.dataset.nome !== secondCard.dataset.nome) {
+      movements++;
+    }
+    document.getElementById("movimentos").innerHTML = `${movements}`;
+    document.getElementById("movimentos2").innerHTML = `${movements}`;
+      
+    if (firstCard.dataset.nome === secondCard.dataset.nome) {
+      winContador++;
+      disableCards();
+      //ALTERAÇÃO* Confere se o "winContador" é igual a "6", que é o número máximo de vitórias que pode haver no jogo!
+      if(winContador == 6) {
+        setTimeout(() => {
+          document.querySelector('#vitoria').style.display = 'block'
+          document.querySelector('#movimentosvitoria').innerHTML = movements
+        }, 1000);
+      }
+      //FIM-ALTERAÇÃO*
+      return;
+    }
 
-  const desafio = desafios[indiceAtual];
-  const botoes = document.querySelectorAll(".opcao");
+ 
+    unflipCards();
 
-  if (escolha === desafio.correta) {
-    feedbackEl.textContent = "✅ Resposta correta!";
-    feedbackEl.style.color = "green";
-  } else {
-    feedbackEl.textContent = "❌ Resposta incorreta.";
-    feedbackEl.style.color = "red";
+    console.log(movements);
+
+  }
+ 
+  //Desabilitando o clique nas cartas viradas
+
+  function disableCards() {
+    firstCard.removeEventListener('click', flipCard);
+    secondCard.removeEventListener('click', flipCard);
+
+    resetBoard();
+  }
+ 
+  //Virando as cartas erradas de volta
+
+  function unflipCards() {
+    lockBoard = true;
+
+    setTimeout(() => {
+      firstCard.classList.remove('flip');
+      secondCard.classList.remove('flip');
+
+      resetBoard();
+
+    }, 1500);
   }
 
-  // destaca a resposta certa e desabilita os botões
-  botoes.forEach((b, i) => {
-    b.disabled = true;
-    if (i === desafio.correta) b.classList.add("correta");
-    if (i === escolha && escolha !== desafio.correta) b.classList.add("errada");
-  });
-
-  // habilita o botão "Próximo" (ou mostra fim do jogo)
-  proximoBtn.disabled = false;
-  if (indiceAtual === desafios.length - 1) {
-    proximoBtn.textContent = "Ver Resultado";
+  function resetBoard() {
+    [hasFlippedCard, lockBoard] = [false, false];
+    [firstCard, secondCard] = [null, null];
   }
-}
 
-proximoBtn.addEventListener("click", () => {
-  indiceAtual++;
-  if (indiceAtual < desafios.length) {
-    carregarDesafio();
-    proximoBtn.textContent = "Próximo Desafio";
-  } else {
-    tituloEl.textContent = "🎉 Parabéns!";
-    perguntaEl.textContent = "Você concluiu todos os desafios!";
-    opcoesEl.innerHTML = "";
-    feedbackEl.textContent = "";
-    proximoBtn.disabled = true;
-  }
-});
+  //Embaralhando cartas (IIFE) Vai ser executada assim que for lida
 
-// inicia o jogo
-carregarDesafio();
+  (function shuffle() {
+    cards.forEach(card => {
+      let ramdomPos = Math.floor(Math.random() * 12);
+      card.style.order = ramdomPos;
+    });
+  })();
+
+cards.forEach(card => card.addEventListener('click', flipCard));
